@@ -1,15 +1,23 @@
 //--------------------------------------------------------------------------------------------
 //! @author korr237i
 //! @file	tests_lib.c
-//! This is a file with macros and functions to provide unit-testing.
-//!	@note	To use it, create tests.c file with arrays of input and output data.
+//!
+//! This file contains macros and functions to provide unit-testing.
+//!	Run runUnitTests function with custom tester function.
 //--------------------------------------------------------------------------------------------
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "tools.h"
 
+//--------------------------------------------------------------------------------------------
+//! @def UNITTEST( what, op, ref, res_type )
+//!	Performs comparison using (op) between (what) and (ref).
+//!
+//! @retval	0 if ((what) op (ref)), -1 else.
+//--------------------------------------------------------------------------------------------
 #define UNITTEST( what, op, ref, res_type )                                                   \
 ({                                                                                            \
 	int error = 0;                                                                            \
@@ -17,45 +25,54 @@
 	if (result op (ref));                                                                     \
     else                                                                                      \
 	{                                                                                         \
+    	red;																				  \
         printf(#what" is %"#res_type" but should be %"#res_type"\n", result##__LINE__, (ref)) \
 		error = -1;                                                                           \
+		reset_color;                                                                          \
 	}                                                                                         \
 	error;                                                                                    \
 })
 
 
-//	TODO: pointer to function
+//--------------------------------------------------------------------------------------------
+//! @fn runUnitTests(int tests_num, int (*tester)(int))
+//! Runs unit tests tester function for test_num times.
+//!
+//! @param[in]  tests_num	Number of tests to be runned.
+//! @param[in]  tester		Pointer to tester function. It sould run tests and create response by itself.
+//!
+//! @return	 Error if one of tests failed.
+//! @retval  0 if all tests passed, TESTS_FAIL (-3) else.
+//--------------------------------------------------------------------------------------------
 int runUnitTests(int tests_num, int (*tester)(int))
 {
-	int error = 0;
+	int error = OK;
 	char* passed = (char*)calloc(tests_num+1,   sizeof(*passed));
 	char* total  = (char*)calloc(tests_num+1,   sizeof(*total));
-	char* back   = (char*)calloc(tests_num*2+2, sizeof(*back));
 
 	for (int i = 0; i < tests_num; i++)
 	{
 		passed[i] = '#';
 		total[i]  = '-';
 	}
-	for (int i = 0; i < tests_num*2+2; i++)
-		back[i] = '\b';
 
-	printf("# Unit testing started\n");
-	printf("-------------------------------------------------\n");
+	yellow; printf("# Unit testing started\n"); reset_color;
+	yellow; printf("-------------------------------------------------\n"); reset_color;
 	for (int i = 1; i < tests_num + 1; i++)
 	{
 		if(tester(i))
 		{
-			printf("#!! UNITTEST #%d failed\n", i);
-			error = -3;
+			red; printf("#!! UNITTEST #%d failed\n", i); reset_color;
+			error = TESTS_FAIL;
 			break;
 		}
-		printf("\r[%.*s|%.*s]", i, passed, tests_num - i, total);
-//		fflush(stdout);
+		green; printf("\r[%.*s|%.*s]", i, passed, tests_num - i, total);
 	}
-	printf("\n-------------------------------------------------\n");
+
+	reset_color;
+	yellow; printf("\n-------------------------------------------------\n"); reset_color;
 	if (!error)
-		printf("# Unit testing ended successfully\n");
+	{ green; printf("# Unit testing ended successfully\n"); reset_color;}
 
 	free(passed);
 	free(total);
