@@ -10,7 +10,7 @@
 #include "equation.h"
 
 
-int isValue(double x, double a);
+int isValue(double x, double a, double eps);
 int SolveLinear(double a, double b, double * x);
 int SolveSquare(double a, double b, double c, double * x1, double * x2);
 
@@ -20,13 +20,14 @@ int SolveSquare(double a, double b, double c, double * x1, double * x2);
 //!
 //! @param[in]  x   Compared value.
 //! @param[in]  a   The value with which the comparison takes place.
+//! @param[in]	eps	Comparison epsilon.
 //!
 //! @return	 Output of logical expression x == a (here: |x - a| < DBL_CMPR_ACCUR).
 //! @retval  1 if x == a, 0 else
 //--------------------------------------------------------------------------------------------
-int isValue(double x, double a)
+int isValue(double x, double a, double eps)
 {
-	return (fabs(x - a) < CMP_EPS) ? 1 : 0;
+	return (fabs(x - a) < eps) ? 1 : 0;
 }
 
 
@@ -45,9 +46,9 @@ int SolveLinear(double a, double b, double * x)
 	if(my_assert(isfinite(a) && isfinite(b))) return ASSERT_FAIL;       // Check for non-NaN
 	if(my_assert(x != NULL)) return ASSERT_FAIL;                        // Check for non-NULL pointer
 
-	if (isValue(a, 0.0))
+	if (isValue(a, 0.0, CMP_EPS))
 	{
-		if (isValue(b, 0.0))
+		if (isValue(b, 0.0, CMP_EPS))
 			return INF_ROOTS;
 		else
 			return NO_ROOTS;
@@ -78,12 +79,15 @@ int SolveSquare(double a, double b, double c, double * x1, double *x2)
 	if(my_assert(isfinite(a) && isfinite(b) && isfinite(c)))  return ASSERT_FAIL;		// Check for non-NaN
 	if(my_assert((x1 != NULL) && (x2 != NULL) && (x1 != x2))) return ASSERT_FAIL;		// Check for non-NULL pointers and for mismatch of pointers
 
-	if (isValue(a, 0.0))
-		return SolveLinear(b, c, x1);
+	if (isValue(a, 0.0, CMP_EPS))
+	{
+		*x1 = 0;
+		return SolveLinear(b, c, x2);
+	}
 	else
 	{
 		double discr2 = b*b - 4*a*c;		// Discriminant in square
-		if (isValue(discr2, 0.0))
+		if (isValue(discr2, 0.0, CMP_EPS))
 		{
 			*x1 = *x2 = -b / (2*a);
 			return ONE_ROOT;

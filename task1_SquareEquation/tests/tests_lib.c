@@ -39,7 +39,7 @@
 //! Runs unit tests tester function for test_num times.
 //!
 //! @param[in]  tests_num	Number of tests to be runned.
-//! @param[in]  tester		Pointer to tester function. It sould run tests and create response by itself.
+//! @param[in]  tester		Pointer to tester function. It should run tests and create response by itself.
 //!
 //! @return	 Error if one of tests failed.
 //! @retval  0 if all tests passed, TESTS_FAIL (-3) else.

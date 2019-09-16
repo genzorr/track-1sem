@@ -39,7 +39,7 @@
 #define INF_ROOTS	3
 
 
-int isValue(double x, double a);
+int isValue(double x, double a, double eps);
 int SolveLinear(double a, double b, double * x);
 int SolveSquare(double a, double b, double c, double * x1, double * x2);
 

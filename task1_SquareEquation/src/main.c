@@ -19,6 +19,8 @@
 //--------------------------------------------------------------------------------------------
 int main()
 {
+	green; printf("# Square Solver (c) korr237i\n"); reset_color;
+
 #ifdef DEBUG
     if (runUnitTests(TESTS_NUMBER, unittest_SolveSquare)) return TESTS_FAIL;
 #endif
@@ -43,10 +45,10 @@ int main()
 			blue; printf("# Equation has no real roots\n"); reset_color;
 			break;
 		case ONE_ROOT:
-			blue; printf("# Equation has one real root:\t\tx = %.2lf\n", x1); reset_color;
+			blue; printf("# Equation has one real root:\t\tx = %.3lf\n", x1); reset_color;
 			break;
 		case TWO_ROOTS:
-			blue; printf("# Equation has two real roots:\t\tx1 = %.2lf\tx2 = %.2lf\n", x1, x2); reset_color;
+			blue; printf("# Equation has two real roots:\t\tx1 = %.3lf\tx2 = %.3lf\n", x1, x2); reset_color;
 			break;
 		case INF_ROOTS:
 			blue; printf("# Equation has endless quantity of real roots\n"); reset_color;
@@ -56,5 +58,5 @@ int main()
 			break;
 	}
 
-	return 0;
+	return OK;
 }
