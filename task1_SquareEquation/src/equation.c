@@ -14,6 +14,7 @@ int isValue(double x, double a, double eps);
 int SolveLinear(double a, double b, double * x);
 int SolveSquare(double a, double b, double c, double * x1, double * x2);
 
+
 //--------------------------------------------------------------------------------------------
 //! @fn isValue(double x, double a)
 //! Checks x for match with a within the accuracy DBL_CMPR_ACCUR.
@@ -27,7 +28,10 @@ int SolveSquare(double a, double b, double c, double * x1, double * x2);
 //--------------------------------------------------------------------------------------------
 int isValue(double x, double a, double eps)
 {
-	return (fabs(x - a) < eps) ? 1 : 0;
+	double diff = x - a;
+	if (((diff < eps) && (diff >= 0)) || ((diff > -eps) && (diff <= 0)))
+		return 1;
+	return 0;
 }
 
 
@@ -43,8 +47,8 @@ int isValue(double x, double a, double eps)
 //--------------------------------------------------------------------------------------------
 int SolveLinear(double a, double b, double * x)
 {
-	if(my_assert(isfinite(a) && isfinite(b))) return ASSERT_FAIL;       // Check for non-NaN
-	if(my_assert(x != NULL)) return ASSERT_FAIL;                        // Check for non-NULL pointer
+	if (MY_assert(isfinite(a)) || MY_assert(isfinite(b))) return ASSERT_FAIL;
+	if (MY_assert(x != NULL)) return ASSERT_FAIL;
 
 	if (isValue(a, 0.0, CMP_EPS))
 	{
@@ -76,13 +80,20 @@ int SolveLinear(double a, double b, double * x)
 //--------------------------------------------------------------------------------------------
 int SolveSquare(double a, double b, double c, double * x1, double *x2)
 {
-	if(my_assert(isfinite(a) && isfinite(b) && isfinite(c)))  return ASSERT_FAIL;		// Check for non-NaN
-	if(my_assert((x1 != NULL) && (x2 != NULL) && (x1 != x2))) return ASSERT_FAIL;		// Check for non-NULL pointers and for mismatch of pointers
+	if (MY_assert(isfinite(a)) || MY_assert(isfinite(b)) || MY_assert(isfinite(c)))
+		return ASSERT_FAIL;
+	if (MY_assert(x1 != NULL) || MY_assert(x2 != NULL) || MY_assert(x1 != x2))
+		return ASSERT_FAIL;
 
 	if (isValue(a, 0.0, CMP_EPS))
 	{
 		*x1 = 0;
 		return SolveLinear(b, c, x2);
+	}
+	else if (isValue(c, 0.0, CMP_EPS))
+	{
+		*x1 = 0;
+		return SolveLinear(a, b, x2);
 	}
 	else
 	{
@@ -103,3 +114,41 @@ int SolveSquare(double a, double b, double c, double * x1, double *x2)
 		}
 	}
 }
+
+
+//--------------------------------------------------------------------------------------------
+//! @fn printResponse_SolveSquare(int response, double x1, double x2)
+//! Prints response and roots of square equation solver.
+//!
+//! @param[in]  response	Response of square equation solver.
+//! @param[in]  x1			First root.
+//! @param[in]  x2			Second root.
+//--------------------------------------------------------------------------------------------
+void printResponse_SolveSquare(int response, double x1, double x2)
+{
+	//	NO assert for x1 and x2 because solver does not change NANs in root variables when response is NO_ROOTS or INF_ROOTS
+
+	switch (response)
+	{
+		case NO_ROOTS:
+			message(blue, "# Equation has no real roots");
+			break;
+		case ONE_ROOT:
+			blue;
+			printf("# Equation has one real root:\t\tx = %.3lf\n", x1);
+			reset_color;
+			break;
+		case TWO_ROOTS:
+			blue;
+			printf("# Equation has two real roots:\t\tx1 = %.3lf\tx2 = %.3lf\n", x1, x2);
+			reset_color;
+			break;
+		case INF_ROOTS:
+			message(blue, "# Equation has endless quantity of real roots");
+			break;
+		default:
+			message(red, "# Error. Invalid solver response code");
+			break;
+	}
+}
+

@@ -17,6 +17,17 @@
 
 
 //--------------------------------------------------------------------------------------------
+//! @def TEST
+//! Macro substitution for running unit testing.
+//--------------------------------------------------------------------------------------------
+#ifdef DEBUG
+#define TEST	(runUnitTests(TESTS_NUMBER, unittest_SolveSquare))
+#else
+#define TEST	0
+#endif
+
+
+//--------------------------------------------------------------------------------------------
 //! @def TESTS_EPS
 //! Epsilon value used to compare doubles in tests.
 //--------------------------------------------------------------------------------------------
@@ -35,15 +46,7 @@ double test_data[][6] =
         {NO_ROOTS,  0,  0,  1,  NAN,    NAN},
         {ONE_ROOT,  1,  2,  1,  -1,     -1},
         {NO_ROOTS,  1,  2,  2,  NAN,    NAN},
-        {TWO_ROOTS, 1,  2,  -2, 0.732,  -2.732},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN},
-        {INF_ROOTS, 0,  0,  0,  NAN,    NAN}
+        {TWO_ROOTS, 1,  2,  -2, 0.732,  -2.732}
 };
 
 
@@ -62,24 +65,21 @@ int unittest_SolveSquare(int cnt)
 	double a = test_data[cnt-1][1], b = test_data[cnt-1][2], c = test_data[cnt-1][3];
 	int result = SolveSquare(a, b, c, &x1, &x2);
 
-	int _cmp1_value = (result != (int)test_data[cnt-1][0]);
+	int _cmp1_res = (result != (int)test_data[cnt-1][0]);
+	int _cmp2_res = !isnan(test_data[cnt-1][4]) ? isnan(x1) : isValue(x1, test_data[cnt-1][4], TESTS_EPS);
+	int _cmp3_res = !isnan(test_data[cnt-1][5]) ? isnan(x2) : isValue(x2, test_data[cnt-1][5], TESTS_EPS);
 
-	int _cmp_value = 0;
-	_cmp_value = isnan(x1);
-	int _cmp2_value = !isnan(test_data[cnt-1][4]) ? _cmp_value : isValue(x1, test_data[cnt-1][4], TESTS_EPS);
-	_cmp_value = isnan(x2);
-	int _cmp3_value = !isnan(test_data[cnt-1][5]) ? _cmp_value : isValue(x2, test_data[cnt-1][5], TESTS_EPS);
-
-	if (_cmp1_value || _cmp2_value || _cmp3_value)
+	if (_cmp1_res || _cmp2_res || _cmp3_res)
 	{
 		red;
 		printf("\n#!! Unit test #%d FAILED, invalid ", cnt);
-		if (_cmp1_value)
-			printf("result\n");
-		if (_cmp2_value)
-			printf("root 1\n");
-		if (_cmp3_value)
-			printf("root 2\n");
+		if (_cmp1_res)
+			printf("result ");
+		if (_cmp2_res)
+			printf("root 1 ");
+		if (_cmp3_res)
+			printf("root 2 ");
+		printf("\n");
 
 		printf("#!!\tSolveSquare result: %d, expected: %d\n", result, (int)test_data[cnt-1][0]);
 		printf("#!!\ta = %.3lf\tb = %.3lf\tc = %.3lf\n", a, b, c);

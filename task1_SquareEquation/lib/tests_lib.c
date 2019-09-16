@@ -18,10 +18,10 @@
 //!
 //! @retval	0 if ((what) op (ref)), -1 else.
 //--------------------------------------------------------------------------------------------
-#define UNITTEST( what, op, ref, res_type )                                                   \
+#define UNITTEST( what, op, ref, res_type )													  \
 ({                                                                                            \
 	int error = 0;                                                                            \
-	auto result##__LINE__ = (what);                                                           \
+	int result##__LINE__ = (what);                                                            \
 	if (result op (ref));                                                                     \
     else                                                                                      \
 	{                                                                                         \
@@ -56,8 +56,8 @@ int runUnitTests(int tests_num, int (*tester)(int))
 		total[i]  = '-';
 	}
 
-	yellow; printf("# Unit testing started\n"); reset_color;
-	yellow; printf("-------------------------------------------------\n"); reset_color;
+	message(yellow, "# Unit testing started");
+	message(yellow, "-------------------------------------------------");
 	for (int i = 1; i < tests_num + 1; i++)
 	{
 		if(tester(i))
@@ -66,13 +66,15 @@ int runUnitTests(int tests_num, int (*tester)(int))
 			error = TESTS_FAIL;
 			break;
 		}
-		green; printf("\r[%.*s|%.*s]", i, passed, tests_num - i, total);
+		green; printf("\r[%.*s|%.*s]\t%d%%", i, passed, tests_num - i, total, (int)(100*i/tests_num));
 	}
-
 	reset_color;
-	yellow; printf("\n-------------------------------------------------\n"); reset_color;
+	message(yellow, "\n-------------------------------------------------");
+
 	if (!error)
-	{ green; printf("# Unit testing ended successfully\n"); reset_color;}
+		{message(yellow, "# Unit testing ended successfully");}
+	else
+		{message(red, "# Unit testing failed");}
 
 	free(passed);
 	free(total);
