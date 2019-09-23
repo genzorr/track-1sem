@@ -106,8 +106,8 @@
 	if (!(check))																									\
 	{																												\
 		red;																										\
-		printf("!## ASSERTION FAILED: function %s()\tFILE %s\tLINE %d\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);	\
-		printf("!## expression: %s\n", #check);																		\
+		printf("!## ASSERTION FAILED: function %s()\t\tFILE %s\tLINE %d\n", __PRETTY_FUNCTION__, __FILE__, __LINE__);	\
+		printf("!## Expression: %s\n", #check);																		\
 		reset_color;																								\
 		error = -1;																									\
 	}																												\
@@ -124,6 +124,7 @@ enum errors_e
 	ASSERT_FAIL = -1,
 	INPUT_FAIL 	= -2,
 	TESTS_FAIL  = -3,
+	ALLOC_FAIL	= -4,
 	FUN_ERROR	= -10
 };
 
