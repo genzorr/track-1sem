@@ -125,6 +125,7 @@ enum errors_e
 	INPUT_FAIL 	= -2,
 	TESTS_FAIL  = -3,
 	ALLOC_FAIL	= -4,
+	SYS_ERROR	= -5,
 	FUN_ERROR	= -10
 };
 

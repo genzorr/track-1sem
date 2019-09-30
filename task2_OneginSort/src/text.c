@@ -16,9 +16,6 @@
 
 int get_fileSize(const char* filepath, int* size);
 int get_linesNumber(char* str, int* nLines);
-int str_countSpaces(char* str, int* spacesCount);
-
-int rawtext_removeGarbage(char* rawtext, int textsize, int* nLines);
 
 char* read_plaintext(const char* filepath, int* filesize, int* nlines, int* response);
 char** create_pointersToLinesArray(char* plaintext, int nlines, int* response);
@@ -34,6 +31,15 @@ int plaintext_writeToFile(const char* filepath, char* plaintext, int nlines);
 int text_writeToFile(const char* filepath, char** text, int nlines);
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn get_fileSize(const char* filepath, int* size)
+//! Gets size of file using stat function without file opening.
+//!
+//! @param[in]  filepath	Path to file.
+//! @param[out]	size		Size of file.
+//!
+//! @return	 Error if assert occurred.
+//--------------------------------------------------------------------------------------------
 int get_fileSize(const char* filepath, int* size)
 {
 	if (MY_assert(filepath) || MY_assert(size))
@@ -47,6 +53,15 @@ int get_fileSize(const char* filepath, int* size)
 }
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn text_countLinesNumber(char* str, int* nLines)
+//! Counts the number of lines in text represented as string.
+//!
+//! @param[in]  str		Text array.
+//!	@param[out]	nLines	Number of lines in text including empty lines.
+//!
+//! @return	 Error if assert occurred.
+//--------------------------------------------------------------------------------------------
 int get_linesNumber(char* str, int* nLines)
 {
 	if (MY_assert(str) || MY_assert(nLines))
@@ -64,54 +79,18 @@ int get_linesNumber(char* str, int* nLines)
 }
 
 
-int str_countSpaces(char* str, int* spacesCount)
-{
-	if (MY_assert(str) || MY_assert(spacesCount))
-		return ASSERT_FAIL;
-
-	int spaces_cnt = 0;
-	for (spaces_cnt = 0; isspace(str[spaces_cnt]); spaces_cnt++);
-
-	*spacesCount = spaces_cnt;
-
-	return OK;
-}
-
-
-//int rawtext_removeGarbage(char* rawtext, int textsize, int* nLines)
-//{
-//	if (MY_assert(rawtext) || MY_assert(nLines)) return ASSERT_FAIL;
-//
-//	int newtext_startpos = str_countSpaces(rawtext);
-//
-//	int ch = 0, cnt = 0, new_cnt = 0;
-//	for (cnt = newtext_startpos; ((ch = rawtext[cnt]) != '\0'); cnt++) {
-//
-//		// ����� � ����� ���, ����� ������ ����������
-//		if (!ispunct(ch))
-//			rawtext[new_cnt++] = ch;
-//
-//		// ���������� ���������� ������� ����� ������� �������������� \n
-//		int skipped = 0;
-//		if (ch == '\n') {
-//			*nLines += 1;
-//			skipped = str_countSpaces(&rawtext[cnt]);
-//
-//			if ((cnt+skipped) < textsize)
-//				cnt += skipped-1;
-//			else
-//				break;
-//		}
-//	}
-//	rawtext[new_cnt] = '\0';
-//
-//	for (int i = new_cnt+1; i < textsize; i++)
-//		rawtext[i] = '\0';
-//
-//	return new_cnt;
-//}
-
-
+//--------------------------------------------------------------------------------------------
+//! @fn read_plaintextFromFile(const char* filepath, int* filesize, int* nLines, int* response)
+//! Reads text from file, allocates memory for it.
+//!	If you use this function you MUST free buffer after the end of it's usage.
+//!
+//! @param[in]  filepath  Path to file.
+//! @param[in]  filesize  Size of file.
+//! @param[in]	nlines    Number of lines in text.
+//! @param[out] response  Response of reading.
+//!
+//! @return	 Pointer to allocated dynamic buffer.
+//--------------------------------------------------------------------------------------------
 char* read_plaintext(const char* filepath, int* filesize, int* nLines, int* response)
 {
 	if (MY_assert(filepath) || MY_assert(filesize))	return NULL;
@@ -119,13 +98,15 @@ char* read_plaintext(const char* filepath, int* filesize, int* nLines, int* resp
 
 	int error = 0;
 
+	//	Get size of file to be read.
 	error = get_fileSize(filepath, filesize);
 	if ((*response == ASSERT_FAIL) || error)
 	{
-		message(red, "# Can't find file in filesystem");
+		message(red, "# Can't find file in file system");
 		return NULL;
 	}
 
+	//	Open file for reading.
 	FILE* file = fopen(filepath, "r");
 	if (MY_assert(file != NULL))
 	{
@@ -133,6 +114,7 @@ char* read_plaintext(const char* filepath, int* filesize, int* nLines, int* resp
 		return NULL;
 	}
 
+	//	Allocate buffer for text.
 	char* raw_text = (char*)calloc(*filesize+1, sizeof(*raw_text));
 	if (MY_assert(raw_text))
 	{
@@ -141,30 +123,46 @@ char* read_plaintext(const char* filepath, int* filesize, int* nLines, int* resp
 		return NULL;
 	}
 
+	//	Read file to allocated buffer.
 	int readed_size = fread(raw_text, sizeof(*raw_text), *filesize, file);
 	if (readed_size < *filesize)
 	{
 		red; printf("# Only %d bytes from %d were read\n", readed_size, *filesize); reset_color;
 	}
 
+	//	Close file.
 	error = fclose(file);
 	if (error)
 	{
-		message(red, "# Error occured while file closing");
+		*response = SYS_ERROR;
+		message(red, "# Error occurred while file closing");
 		return NULL;
 	}
 
+	//	Get number of lines in read text.
 	error = get_linesNumber(raw_text, nLines);
 	if (error)
+	{
+		*response = FUN_ERROR;
 		return NULL;
-
-//	rawtext_removeGarbage(raw_text, *filesize, nlines);
+	}
 
 	return raw_text;
 }
 
 
-char** create_pointersToLinesArray(char* plaintext, int nlines, int* response)
+//--------------------------------------------------------------------------------------------
+//! @fn create_pointersToLinesArray(char* plaintext, int nlines, int* response)
+//! Allocates array of pointers to strings. Every element in that array points at the beginning of string in text.
+//!	If you use this function you MUST free buffer after the end of it's usage.
+//!
+//! @param[in]	plaintext  Pointer to plaintext array.
+//! @param[in]	nLines     Number of lines in text.
+//! @param[out]	response   Result of working.
+//!
+//! @return  Pointer to created lines pointers array.
+//--------------------------------------------------------------------------------------------
+char** create_pointersToLinesArray(char* plaintext, int nLines, int* response)
 {
 	if (MY_assert(plaintext) || MY_assert(response))
 	{
@@ -172,15 +170,19 @@ char** create_pointersToLinesArray(char* plaintext, int nlines, int* response)
 		return NULL;
 	}
 
+	int error = 0;
+
+	//	Check if file has no lines.
 	*response = 0;
-	if (nlines <= 0)
+	if (nLines <= 0)
 	{
 		*response = INV_LINES_NUMBER;
 		message(red, "# Invalid lines number");
 		return NULL;
 	}
 
-	char** text = (char**)calloc(nlines+1, sizeof(*text));
+	//	Allocate buffer.
+	char** text = (char**)calloc(nLines+1, sizeof(*text));
 	if (MY_assert(text))
 	{
 		*response = ASSERT_FAIL;
@@ -188,22 +190,39 @@ char** create_pointersToLinesArray(char* plaintext, int nlines, int* response)
 		return NULL;
 	}
 
+	//	Fill in pointers array and change \n symbols to \0 in each line.
+	//	I use text[nLines] element as indication of array end.
 	text[0] = plaintext;
-	text[nlines] = NULL;
-	if (text_fillArray_removeNewLines(plaintext, text))
+	text[nLines] = NULL;
+	error = text_fillArray_removeNewLines(plaintext, text);
+	if (error)
+	{
+		*response = FUN_ERROR;
 		return NULL;
+	}
 
 	return text;
 }
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn text_fillArray_removeNewLines(char* plaintext, char** text)
+//! Fills the pointers-to-lines array and changes \n to \0 in each file.
+//!
+//! @param[in]	plaintext  Text array.
+//! @param[in]	text       Array of pointers-to-lines.
+//!
+//!	@return		Error if assert occurred.
+//--------------------------------------------------------------------------------------------
 int text_fillArray_removeNewLines(char* plaintext, char** text)
 {
 	if (MY_assert(plaintext) || MY_assert(text))
 		return ASSERT_FAIL;
 
+	//	Start from 1 element, 0 element is already pointer to plaintext.
 	int lines_counter = 1;
-	for (char* ch = strchr(plaintext, '\n'); ch; ch = strchr(ch + 1, '\n')) {
+	for (char* ch = strchr(plaintext, '\n'); ch; ch = strchr(ch + 1, '\n'))
+	{
 		*ch = '\0';
 		text[lines_counter++] = ch+1;
 	}
