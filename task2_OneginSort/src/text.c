@@ -24,8 +24,7 @@ int text_fillArray_removeNewLines(char* plaintext, char** text);
 int str_ForwardCmp(char* a, char* b);
 int str_ReverseCmp(char* a, char* b);
 
-int text_forwardSort(char** text, int nlines);
-int text_reverseSort(char** text, int nlines);
+int textSort(char** text, int nlines, int mode);
 
 int plaintext_writeToFile(const char* filepath, char* plaintext, int nlines);
 int text_writeToFile(const char* filepath, char** text, int nlines);
@@ -38,7 +37,7 @@ int text_writeToFile(const char* filepath, char** text, int nlines);
 //! @param[in]  filepath	Path to file.
 //! @param[out]	size		Size of file.
 //!
-//! @return	 Error if assert occurred.
+//! @return	 Error code if assert occurred.
 //--------------------------------------------------------------------------------------------
 int get_fileSize(const char* filepath, int* size)
 {
@@ -60,7 +59,7 @@ int get_fileSize(const char* filepath, int* size)
 //! @param[in]  str		Text array.
 //!	@param[out]	nLines	Number of lines in text including empty lines.
 //!
-//! @return	 Error if assert occurred.
+//! @return	 Error code if assert occurred.
 //--------------------------------------------------------------------------------------------
 int get_linesNumber(char* str, int* nLines)
 {
@@ -191,7 +190,7 @@ char** create_pointersToLinesArray(char* plaintext, int nLines, int* response)
 	}
 
 	//	Fill in pointers array and change \n symbols to \0 in each line.
-	//	I use text[nLines] element as indication of array end.
+	//	I use element number nLines as indication of array's end.
 	text[0] = plaintext;
 	text[nLines] = NULL;
 	error = text_fillArray_removeNewLines(plaintext, text);
@@ -212,7 +211,7 @@ char** create_pointersToLinesArray(char* plaintext, int nLines, int* response)
 //! @param[in]	plaintext  Text array.
 //! @param[in]	text       Array of pointers-to-lines.
 //!
-//!	@return		Error if assert occurred.
+//!	@return		Error code if assert occurred.
 //--------------------------------------------------------------------------------------------
 int text_fillArray_removeNewLines(char* plaintext, char** text)
 {
@@ -231,6 +230,18 @@ int text_fillArray_removeNewLines(char* plaintext, char** text)
 }
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn str_ForwardCmp(char* a, char* b)
+//! Compares two strings from their beginnings.
+//!
+//! @param[in]  a  First string.
+//! @param[in]  b  Second string.
+//!
+//! @return  (a > b)
+//! @retval   0  a == b
+//! @retval   1  a > b
+//! @retval  -1  a < b
+//--------------------------------------------------------------------------------------------
 int str_ForwardCmp(char* a, char* b)
 {
 	assert(a);
@@ -243,7 +254,6 @@ int str_ForwardCmp(char* a, char* b)
 		return 1;
 	if (b[0] == '\0')
 		return -1;
-
 
 	for (int i = 0, k = 0; (((cha = tolower(a[i])) != '\0') && ((chb = tolower(b[k])) != '\0')); )
 	{
@@ -285,6 +295,18 @@ int str_ForwardCmp(char* a, char* b)
 }
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn str_ReverseCmp(char* a, char* b)
+//! Compares two strings from their endings.
+//!
+//! @param[in]  a  First string.
+//! @param[in]  b  Second string.
+//!
+//! @return  (a > b)
+//! @retval   0  a == b
+//! @retval   1  a >  b
+//! @retval  -1  a <  b
+//--------------------------------------------------------------------------------------------
 int str_ReverseCmp(char* a, char* b)
 {
 	assert(a);
@@ -345,59 +367,95 @@ int str_ReverseCmp(char* a, char* b)
 }
 
 
+//--------------------------------------------------------------------------------------------
+//! @fn str_ForwardCmpFunc(const void* a, const void* b)
+//! A comparator function to use qsort for sorting char** array.
+//!
+//! @param[in]  a  First string.
+//! @param[in]  b  Second string.
+//!
+//! @retval   Retval of str_ForwardCmp.
+//--------------------------------------------------------------------------------------------
 static int str_ForwardCmpFunc(const void* a, const void* b)
 {
 	return str_ForwardCmp(*(char**)a, *(char**)b);
 }
 
+
+//--------------------------------------------------------------------------------------------
+//! @fn str_ReverseCmpFunc(const void* a, const void* b)
+//! A comparator function to use qsort for sorting char** array.
+//!
+//! @param[in]  a  First string.
+//! @param[in]  b  Second string.
+//!
+//! @retval   Retval of str_ReverseCmp.
+//--------------------------------------------------------------------------------------------
 static int str_ReverseCmpFunc(const void* a, const void* b)
 {
 	return str_ReverseCmp(*(char**)a, *(char**)b);
 }
 
 
-int text_forwardSort(char** text, int nlines)
+//--------------------------------------------------------------------------------------------
+//! @fn textSort(char** text, int nlines, int mode)
+//! Sorts text by lines by specified mode. It may be 1 for forward sort or -1 for reverse sort.
+//!
+//! @param[in]  text    Pointers-to-lines array.
+//! @param[in]  nLines  Number of lines in text.
+//!	@param[in]	mode	Means forward or reverse sort it will be.
+//!
+//! @return		Error if assert or other error occurred.
+//--------------------------------------------------------------------------------------------
+int textSort(char** text, int nLines, int mode)
 {
 	if (MY_assert(text))
 		return ASSERT_FAIL;
 
-	if (nlines <= 0)
+	if (nLines <= 0)
 		return INV_LINES_NUMBER;
 
-    qsort(text, nlines, sizeof(text[0]), str_ForwardCmpFunc);
+	if ((mode != 1) && (mode != -1))
+		return FUN_ERROR;
+
+	if (mode == 1)
+		qsort(text, nLines, sizeof(text[0]), str_ForwardCmpFunc);
+	else
+		qsort(text, nLines, sizeof(text[0]), str_ReverseCmpFunc);
 
     return OK;
 }
 
 
-int text_reverseSort(char** text, int nlines)
-{
-	if (MY_assert(text))
-		return ASSERT_FAIL;
-
-	if (nlines <= 0)
-		return INV_LINES_NUMBER;
-
-	qsort(text, nlines, sizeof(text[0]), str_ReverseCmpFunc);
-
-	return OK;
-}
-
-
-int plaintext_writeToFile(const char* filepath, char* plaintext, int nlines)
+//--------------------------------------------------------------------------------------------
+//! @fn plaintext_writeToFile(const char* filepath, char* plaintext, int nLines)
+//! Writes raw text to file.
+//!
+//! @param[in]  filepath   Path where the file is.
+//! @param[in]  plaintext  Text array.
+//! @param[in]  nLines     Number of lines in text.
+//!
+//! @return  Error code if error occurred.
+//--------------------------------------------------------------------------------------------
+int plaintext_writeToFile(const char* filepath, char* plaintext, int nLines)
 {
 	if (MY_assert(filepath) || MY_assert(plaintext))
 		return ASSERT_FAIL;
 
-	FILE* f = fopen(filepath, "w");
+	FILE* f = fopen(filepath, "a");
 	if (MY_assert(f))
 		return CANT_OPEN_FILE;
+
+	fprintf(f, "\n\n\n\n################################################\n"\
+				"################################################\n"\
+				"################################################\n\n\n\n\n");
 
 	int cnt = 0;
 	fprintf(f, "%s\n", plaintext);
 
 	for (char* ch = strchr(plaintext, '\0'); ch; ch = strchr(ch + 1, '\0')) {
-		if (cnt >= nlines) break;
+		if (cnt >= nLines)
+			break;
 
 		fprintf(f, "%s\n", ch+1);
 		cnt++;
@@ -414,7 +472,17 @@ int plaintext_writeToFile(const char* filepath, char* plaintext, int nlines)
 }
 
 
-int text_writeToFile(const char* filepath, char** text, int nlines)
+//--------------------------------------------------------------------------------------------
+//! @fn text_writeToFile(const char* filepath, char** text, int nLines)
+//! Writes sorted text to file.
+//!
+//! @param[in]  filepath  Path where the file is.
+//! @param[in]  text      Pointers-to-lines of text array.
+//! @param[in]  nLines    Number of lines in text.
+//!
+//! @return  Response of reading file
+//--------------------------------------------------------------------------------------------
+int text_writeToFile(const char* filepath, char** text, int nLines)
 {
 	if (MY_assert(filepath) || MY_assert(text))
 		return ASSERT_FAIL;
@@ -427,7 +495,7 @@ int text_writeToFile(const char* filepath, char** text, int nlines)
 				"################################################\n"\
 				"################################################\n");
 
-	for (int i = 0; i < nlines; i++)
+	for (int i = 0; i < nLines; i++)
 		fprintf(f, "%s\n", text[i]);
 
 	int error = fclose(f);

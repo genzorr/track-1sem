@@ -51,7 +51,7 @@ double test_data[][6] =
 
 
 //--------------------------------------------------------------------------------------------
-//! @fn runUnitTests(int cnt)
+//! @fn unittest_SolveSquare(int cnt)
 //! Runs unittest using coeff_data, res_data, roots_data.
 //!
 //! @param[in]  cnt	Number of current test which is runned.

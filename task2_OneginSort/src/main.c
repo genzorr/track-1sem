@@ -8,6 +8,7 @@
 #include <ctype.h>
 
 #include "tools.h"
+#include "tests.h"
 #include "text.h"
 
 
@@ -22,6 +23,8 @@ const char* out_filepath	= "/home/michael/track/track-1sem/task2_OneginSort/text
 int main()
 {
 	message(green, "### Text sorter\n");
+	if (TEST)
+		return ASSERT_FAIL;
 
 	int filesize = 0, nLines = 0, response = 0;
 	char* plaintext = read_plaintext(in_filepath, &filesize, &nLines, &response);
@@ -38,7 +41,13 @@ int main()
 
 	char** text_zeroptr = &text[0];
 
-	response = text_forwardSort(text, nLines);
+	//	Open file for the first time with "w" to clean it.
+	FILE* f = fopen(out_filepath, "w");
+	if (MY_assert(f))
+		return CANT_OPEN_FILE;
+	fclose(f);
+
+	response = textSort(text, nLines, FORWARD);
 	if (response)
 		return response;
 
@@ -46,7 +55,7 @@ int main()
 	if (response)
 		return response;
 
-	response = text_reverseSort(text, nLines);
+	response = textSort(text, nLines, REVERSE);
 	if (response)
 		return response;
 
@@ -54,9 +63,9 @@ int main()
 	if (response)
 		return response;
 
-	//	Move \0 -> \n
-//	response = plaintext_writeToFile(out_text_filepath, plaintext, nLines);
-//	if (response != OK)  return CANT_OPEN_FILE;
+	response = plaintext_writeToFile(out_filepath, plaintext, nLines);
+	if (response != OK)
+		return CANT_OPEN_FILE;
 
 	free(plaintext);
 	free(text_zeroptr);
