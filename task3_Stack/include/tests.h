@@ -19,7 +19,7 @@
 //! Macro substitution for running unit testing.
 //--------------------------------------------------------------------------------------------
 #ifdef DEBUG
-#define TEST	(runUnitTests(TESTS_NUMBER, unittest_Onegin))
+#define TEST	(runUnitTests(TESTS_NUMBER, unittest_Stack))
 #else
 #define TEST	0
 #endif
@@ -31,14 +31,14 @@ char* testData[][2] = {
 
 
 //--------------------------------------------------------------------------------------------
-//! @fn unittest_Onegin(int cnt)
+//! @fn unittest_Stack(int cnt)
 //! Runs unittests from given in testData.
 //! @param[in]  cnt	Number of current test which is runned.
 //!
 //! @return	 Error if test failed.
 //! @retval  0 if test passed, TESTS_FAIL (-3) else.
 //--------------------------------------------------------------------------------------------
-int unittest_Onegin(int cnt)
+int unittest_Stack(int cnt)
 {
 
 

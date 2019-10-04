@@ -41,7 +41,7 @@ int main()
 
 	char** text_zeroptr = &text[0];
 
-	//	Open file for the first time with "w" to clean it.
+	//	Open file for the first time with "w" option to clean it.
 	FILE* f = fopen(out_filepath, "w");
 	if (MY_assert(f))
 		return CANT_OPEN_FILE;
