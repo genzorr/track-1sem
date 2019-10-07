@@ -11,26 +11,24 @@
 #include "stack.h"
 
 
-stack* StackCtor()
+int StackCtor(stack* s)
 {
-	//	Allocate and check that memory was allocated.
-	stack* s = (stack*)calloc(1, sizeof(*s));
-	if (s == NULL)
-		return NULL;
+	if (MY_assert(s))
+		return ASSERT_FAIL;
 
 	//	Allocate data and fill fields.
 	s->data 	= (data_t*)calloc(INIT_CAPACITY, sizeof(data_t));
 	s->size 	= 0;
 	s->capacity = INIT_CAPACITY;
 
+	s->canary1	= CANARY1;
+	s->canary2	= CANARY2;
+
 	//	Check data.
 	if (s->data == NULL)
-	{
-		free(s);
-		s = NULL;
-	}
+		return ST_NULL_DATA_PTR;
 
-	return s;
+	return OK;
 }
 
 
@@ -40,10 +38,7 @@ int StackDtor(stack* s)
 		return ST_NULL_PTR;
 
 	if (s->data == NULL)
-	{
-		free(s);
-		return ST_NULL_DATA_PRT;
-	}
+		return ST_NULL_DATA_PTR;
 
 	//	Fill stack with poison
 	memset(s->data, POISON, s->size);
@@ -52,8 +47,6 @@ int StackDtor(stack* s)
 
 	free(s->data);
 	s->data = NULL;
-	free(s);
-	s = NULL;
 
 	return OK;
 }
@@ -65,10 +58,13 @@ int StackOK(stack* s)
 		return ST_NULL_PTR;
 
 	if (s->data == NULL)
-		return ST_NULL_DATA_PRT;
+		return ST_NULL_DATA_PTR;
 
 	if ((s->size < 0) || (s->size > s->capacity))
 		return ST_INV_SIZE;
+
+	if ((s->canary1 != CANARY1) || (s->canary2 != CANARY2))
+		return ST_BAD_CANARY;
 
 	return OK;
 }
