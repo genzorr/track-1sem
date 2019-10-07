@@ -11,61 +11,72 @@
 #include "stack.h"
 
 
-int StackCtor(stack* s)
+int StackCtor(stack* stk)
 {
-	if (MY_assert(s))
+	if (MY_assert(stk))
 		return ASSERT_FAIL;
 
 	//	Allocate data and fill fields.
-	s->data 	= (data_t*)calloc(INIT_CAPACITY, sizeof(data_t));
-	s->size 	= 0;
-	s->capacity = INIT_CAPACITY;
+	stk->data 	= (data_t*)calloc(INIT_CAPACITY+2, sizeof(data_t));
+	stk->size 	= 0;
+	stk->capacity = INIT_CAPACITY;
 
-	s->canary1	= CANARY1;
-	s->canary2	= CANARY2;
+	stk->canary1	= CANARY1;
+	stk->canary2	= CANARY2;
 
 	//	Check data.
-	if (s->data == NULL)
+	if (stk->data == NULL)
 		return ST_NULL_DATA_PTR;
+
+	stk->data[0] = CANARYDATA;
+	stk->data[INIT_CAPACITY+1] = CANARYDATA;
 
 	return OK;
 }
 
 
-int StackDtor(stack* s)
+int StackDtor(stack* stk)
 {
-	if (s == NULL)
+	if (stk == NULL)
 		return ST_NULL_PTR;
 
-	if (s->data == NULL)
+	if (stk->data == NULL)
 		return ST_NULL_DATA_PTR;
 
 	//	Fill stack with poison
-	memset(s->data, POISON, s->size);
-	s->size 	= POISON;
-	s->capacity = POISON;
+	memset(stk->data+1, POISON, stk->size);
+	stk->size 	= POISON;
+	stk->capacity = POISON;
 
-	free(s->data);
-	s->data = NULL;
+	free(stk->data);
+	stk->data = NULL;
 
 	return OK;
 }
 
 
-int StackOK(stack* s)
+int StackOK(stack* stk)
 {
-	if (s == NULL)
+	if (stk == NULL)
 		return ST_NULL_PTR;
 
-	if (s->data == NULL)
-		return ST_NULL_DATA_PTR;
+	int error = 0;
 
-	if ((s->size < 0) || (s->size > s->capacity))
-		return ST_INV_SIZE;
+	if (stk->data == NULL)
+		error |= ST_NULL_DATA_PTR;
 
-	if ((s->canary1 != CANARY1) || (s->canary2 != CANARY2))
-		return ST_BAD_CANARY;
+	if ((stk->size < 0) || (stk->size > stk->capacity))
+		error |= ST_INV_SIZE;
 
-	return OK;
+	if (stk->canary1 != CANARY1)
+		error |= ST_BAD_CANARY1;
+
+	if (stk->canary2 != CANARY2)
+		error |= ST_BAD_CANARY2;
+
+	if ((*(stk->data+0) != CANARYDATA) || (*(stk->data+stk->capacity+1) != CANARYDATA))
+		error |= ST_BAD_CANARYDATA;
+
+	return error;
 }
 

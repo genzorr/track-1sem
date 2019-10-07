@@ -13,19 +13,19 @@ int main()
 
 	//	TODO: check alignment
 
-	stack st = {"st"};
+	stack stk = {"stk"};
 
-	int error = StackCtor(&st);
+	int error = StackCtor(&stk);
 	if (error)
 		return ST_NULL_PTR;
 
 //	st->size = 17;
-	st.canary1 = 0;
-	st.size = 11;
-	st.data[10] = POISON;
-	StackDump(&st);
+//	stk.canary2 = 0;
+	stk.size = 11;
+	stk.data[10] = POISON;
+	StackDump(&stk);
 
-	StackDtor(&st);
+	StackDtor(&stk);
 
 	return 0;
 }

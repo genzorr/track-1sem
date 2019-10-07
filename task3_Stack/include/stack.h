@@ -13,6 +13,7 @@
 
 #define CANARY1		0xDEADBEEF
 #define CANARY2		0x0EDAF00D
+#define CANARYDATA	(POISON*POISON)
 
 
 typedef double data_t;
@@ -22,19 +23,23 @@ typedef struct Stack
 	const char name[10];
 
 	int32_t	canary1;
+
 	data_t* data;
 	size_t	size;
 	size_t	capacity;
+
 	int32_t canary2;
 } stack;
 
 
 enum stack_errors
 {
-	ST_NULL_PTR			= -11,
-	ST_NULL_DATA_PTR	= -12,
-	ST_INV_SIZE			= -13,
-	ST_BAD_CANARY		= -14
+	ST_NULL_PTR			= (1 << 0),
+	ST_NULL_DATA_PTR	= (1 << 1),
+	ST_INV_SIZE			= (1 << 2),
+	ST_BAD_CANARY1		= (1 << 3),
+	ST_BAD_CANARY2		= (1 << 4),
+	ST_BAD_CANARYDATA	= (1 << 5)
 };
 
 
