@@ -6,6 +6,9 @@
 #ifndef INCLUDE_STACK_H_
 #define INCLUDE_STACK_H_
 
+#define INIT_CAPACITY		16
+#define	POISON				(-42)
+
 typedef double data_t;
 
 typedef struct Stack

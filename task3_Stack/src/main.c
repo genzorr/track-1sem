@@ -8,13 +8,16 @@
 int main()
 {
 	//	TODO: CRC
-	stack* s = StackCtor();
+	stack* st = StackCtor();
 
-	StackDump(s);
-	s = NULL;
-	StackDump(s);
+	st->size = 17;
+	StackDump(st);
+//	stack* st_ = st;
+	st = NULL;
+	StackDump(st);
 
-	StackDtor(s);
+//	st = st_;
+	StackDtor(st);
 
 	return 0;
 }
