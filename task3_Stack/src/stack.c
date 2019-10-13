@@ -16,7 +16,7 @@ int StackCtor(stack* stk)
 	if (MY_assert(stk))
 		return ASSERT_FAIL;
 
-	//	Allocate data and fill fields.
+	//	Allocate data memory and fill fields.
 	stk->data 	= (data_t*)calloc(INIT_CAPACITY+2, sizeof(data_t));
 	stk->size 	= 0;
 	stk->capacity = INIT_CAPACITY;
@@ -43,8 +43,8 @@ int StackDtor(stack* stk)
 	if (stk->data == NULL)
 		return ST_NULL_DATA_PTR;
 
-	//	Fill stack with poison
-	memset(stk->data+1, POISON, stk->size);
+	//	Fill stack with poison.
+	memset(&(stk->data[1]), POISON, stk->size);
 	stk->size 	= POISON;
 	stk->capacity = POISON;
 
@@ -74,9 +74,54 @@ int StackOK(stack* stk)
 	if (stk->canary2 != CANARY2)
 		error |= ST_BAD_CANARY2;
 
-	if ((*(stk->data+0) != CANARYDATA) || (*(stk->data+stk->capacity+1) != CANARYDATA))
+	if ((stk->data[0] != CANARYDATA) || (stk->data[stk->capacity+1] != CANARYDATA))
 		error |= ST_BAD_CANARYDATA;
 
 	return error;
+}
+
+
+int StackIncrease(stack* stk)
+{
+	ASSERT_OK;
+
+	size_t size = INIT_CAPACITY;
+	if (stk->size == stk->capacity)
+		size = stk->capacity * 2;
+
+	data_t* copy = realloc(stk->data, (size+2)*sizeof(data_t));
+
+	if (copy == NULL)
+	{
+		messagen(red, "# Can't realloc new memory for data");
+		return ALLOC_FAIL;
+	}
+
+	stk->data = copy;
+	stk->data[stk->capacity+1] = 0;
+
+	stk->capacity = size;
+	stk->data[stk->capacity+1] = CANARYDATA;
+
+	ASSERT_OK;
+	return OK;
+}
+
+
+int StackPush(stack* stk, data_t value)
+{
+	ASSERT_OK;
+
+	if (stk->size == stk->capacity)
+		if (StackIncrease(stk) == ALLOC_FAIL)
+		{
+			messagen(yellow, "# Can't push because of stack overflow");
+			return	ST_OVERFLOW;
+		}
+
+	stk->data[(stk->size++) + 1] = value;
+
+	ASSERT_OK;
+	return OK;
 }
 

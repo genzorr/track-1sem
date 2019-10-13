@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 
-#define INIT_CAPACITY		16
+#define INIT_CAPACITY		8
 #define	POISON				(-42)
 
 #define CANARY1		0xDEADBEEF
@@ -39,7 +39,9 @@ enum stack_errors
 	ST_INV_SIZE			= (1 << 2),
 	ST_BAD_CANARY1		= (1 << 3),
 	ST_BAD_CANARY2		= (1 << 4),
-	ST_BAD_CANARYDATA	= (1 << 5)
+	ST_BAD_CANARYDATA	= (1 << 5),
+	ST_OVERFLOW			= (1 << 6),
+	ST_UNDERFLOW		= (1 << 7)
 };
 
 
@@ -47,5 +49,19 @@ int StackCtor();
 int StackDtor(stack* s);
 int StackOK(stack* s);
 void StackDump(stack* s);
+
+int StackPush(stack* stk, data_t value);
+
+
+
+#define ASSERT_OK			\
+{							\
+	if (StackOK(stk))		\
+	{						\
+		MY_assert(!"OK");	\
+		StackDump(stk);		\
+		StackDtor(stk);		\
+	}						\
+}
 
 #endif /* INCLUDE_STACK_H_ */

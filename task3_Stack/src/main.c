@@ -7,6 +7,8 @@
 
 int main()
 {
+	//	TODO: make dump ready for data_t type
+
 	//	TODO: HASH: for struct and for buffer
 	//	TODO: CANARY for DATA buffer
 	//	TODO: canary and hash by ifdefs
@@ -19,10 +21,25 @@ int main()
 	if (error)
 		return ST_NULL_PTR;
 
-//	st->size = 17;
-//	stk.canary2 = 0;
-	stk.size = 11;
-	stk.data[10] = POISON;
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
+	StackPush(&stk, 5);
 	StackDump(&stk);
 
 	StackDtor(&stk);
