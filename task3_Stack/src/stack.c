@@ -20,13 +20,17 @@ int StackCtor(stack* stk)
 	stk->data 	= (data_t*)calloc(INIT_CAPACITY+2, sizeof(data_t));
 	stk->size 	= 0;
 	stk->capacity = INIT_CAPACITY;
+	stk->error	= 0;
 
 	stk->canary1	= CANARY1;
 	stk->canary2	= CANARY2;
 
 	//	Check data.
 	if (stk->data == NULL)
+	{
+		stk->error = ST_NULL_DATA_PTR;
 		return ST_NULL_DATA_PTR;
+	}
 
 	stk->data[0] = CANARYDATA;
 	stk->data[INIT_CAPACITY+1] = CANARYDATA;
@@ -41,12 +45,18 @@ int StackDtor(stack* stk)
 		return ST_NULL_PTR;
 
 	if (stk->data == NULL)
+	{
+		stk->error = ST_NULL_DATA_PTR;
 		return ST_NULL_DATA_PTR;
+	}
 
 	//	Fill stack with poison.
-	memset(&(stk->data[1]), POISON, stk->size);
+	memset(stk->data, POISON, stk->capacity + 2);
 	stk->size 	= POISON;
 	stk->capacity = POISON;
+	stk->error	= POISON;
+
+	//	here.
 
 	free(stk->data);
 	stk->data = NULL;
@@ -76,6 +86,8 @@ int StackOK(stack* stk)
 
 	if ((stk->data[0] != CANARYDATA) || (stk->data[stk->capacity+1] != CANARYDATA))
 		error |= ST_BAD_CANARYDATA;
+
+	stk->error = error;
 
 	return error;
 }
@@ -113,11 +125,16 @@ int StackPush(stack* stk, data_t value)
 	ASSERT_OK;
 
 	if (stk->size == stk->capacity)
+	{
 		if (StackIncrease(stk) == ALLOC_FAIL)
 		{
-			messagen(yellow, "# Can't push because of stack overflow");
+			messagen(yellow, "# Can't push element: allocation fail");
+			stk->error |= ST_OVERFLOW;
 			return	ST_OVERFLOW;
 		}
+		else
+			messagen(yellow, "# Stack's data memory was reallocated");
+	}
 
 	stk->data[(stk->size++) + 1] = value;
 
@@ -125,3 +142,33 @@ int StackPush(stack* stk, data_t value)
 	return OK;
 }
 
+
+data_t StackPop(stack* stk)
+{
+	ASSERT_OK;
+
+	if (stk->size == 0)
+	{
+		messagen(yellow, "# Can't pop element: stack is empty");
+		stk->error = ST_UNDERFLOW;
+		return ST_UNDERFLOW;
+	}
+
+	data_t value = stk->data[(--(stk->size)) + 1];
+	stk->data[(stk->size) + 1] = POISON;
+
+	ASSERT_OK;
+	return value;
+}
+
+
+int StackClear(stack* stk)
+{
+	ASSERT_OK;
+
+	StackDtor(stk);
+	StackCtor(stk);
+
+	ASSERT_OK;
+	return OK;
+}

@@ -7,6 +7,7 @@
 #define INCLUDE_STACK_H_
 
 #include <stdint.h>
+#include <assert.h>
 
 #define INIT_CAPACITY		8
 #define	POISON				(-42)
@@ -27,6 +28,8 @@ typedef struct Stack
 	data_t* data;
 	size_t	size;
 	size_t	capacity;
+
+	size_t	error;
 
 	int32_t canary2;
 } stack;
@@ -51,16 +54,17 @@ int StackOK(stack* s);
 void StackDump(stack* s);
 
 int StackPush(stack* stk, data_t value);
+data_t StackPop(stack* stk);
 
+int StackClear(stack* stk);
 
 
 #define ASSERT_OK			\
 {							\
 	if (StackOK(stk))		\
 	{						\
-		MY_assert(!"OK");	\
 		StackDump(stk);		\
-		StackDtor(stk);		\
+		assert(!"OK");		\
 	}						\
 }
 
