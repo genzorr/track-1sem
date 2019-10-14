@@ -21,7 +21,9 @@ int StackCtor(stack* stk)
 	stk->size 	= 0;
 	stk->capacity = INIT_CAPACITY;
 	stk->error	= 0;
+	stk->hash	= 0;
 
+	//	Fill in stack canaries.
 	stk->canary1	= CANARY1;
 	stk->canary2	= CANARY2;
 
@@ -32,8 +34,12 @@ int StackCtor(stack* stk)
 		return ST_NULL_DATA_PTR;
 	}
 
+	//	Fill in data canaries.
 	stk->data[0] = CANARYDATA;
 	stk->data[INIT_CAPACITY+1] = CANARYDATA;
+
+	//	Calculate hash.
+	stk->hash = calc_hash(stk);
 
 	return OK;
 }
@@ -52,9 +58,10 @@ int StackDtor(stack* stk)
 
 	//	Fill stack with poison.
 	memset(stk->data, POISON, stk->capacity + 2);
-	stk->size 	= POISON;
-	stk->capacity = POISON;
-	stk->error	= POISON;
+	stk->size 		= POISON;
+	stk->capacity	= POISON;
+	stk->error		= POISON;
+	stk->hash		= POISON;
 
 	//	here.
 
@@ -87,6 +94,9 @@ int StackOK(stack* stk)
 	if ((stk->data[0] != CANARYDATA) || (stk->data[stk->capacity+1] != CANARYDATA))
 		error |= ST_BAD_CANARYDATA;
 
+	if (stk->hash != calc_hash(stk))
+		error |= ST_BAD_HASH;
+
 	stk->error = error;
 
 	return error;
@@ -114,6 +124,8 @@ int StackIncrease(stack* stk)
 
 	stk->capacity = size;
 	stk->data[stk->capacity+1] = CANARYDATA;
+
+	stk->hash = calc_hash(stk);
 
 	ASSERT_OK;
 	return OK;
@@ -143,6 +155,7 @@ int StackDecrease(stack* stk)
 		stk->capacity = size;
 		stk->data[stk->capacity+1] = CANARYDATA;
 
+		stk->hash = calc_hash(stk);
 	}
 
 	ASSERT_OK;
@@ -167,6 +180,7 @@ int StackPush(stack* stk, data_t value)
 	}
 
 	stk->data[(stk->size++) + 1] = value;
+	stk->hash = calc_hash(stk);
 
 	ASSERT_OK;
 	return OK;
@@ -198,6 +212,7 @@ data_t StackPop(stack* stk)
 
 	data_t value = stk->data[(--(stk->size)) + 1];
 	stk->data[(stk->size) + 1] = POISON;
+	stk->hash = calc_hash(stk);
 
 	ASSERT_OK;
 	return value;
@@ -213,4 +228,22 @@ int StackClear(stack* stk)
 
 	ASSERT_OK;
 	return OK;
+}
+
+
+data_t calc_hash(stack* stk)
+{
+	uint32_t h = 5381;
+
+	h = h * 33 + (uint32_t)(stk->canary1);
+
+	for (int i = 0; i < stk->size; i++)
+		h = h * 33 + (uint32_t)(stk->data[i]);
+
+	h = h * 33 + (uint32_t)(stk->size);
+	h = h * 33 + (uint32_t)(stk->capacity);
+	h = h * 33 + (uint32_t)(stk->error);
+	h = h * 33 + (uint32_t)(stk->canary2);
+
+	return (data_t)h;
 }

@@ -10,8 +10,7 @@ int main()
 	//	TODO: make dump ready for data_t type
 	//	TODO: stack decrease, hash
 
-	//	TODO: HASH: for struct and for buffer
-	//	TODO: CANARY for DATA buffer
+	//	TODO: error and hash to dump
 	//	TODO: canary and hash by ifdefs
 
 	//	TODO: check alignment

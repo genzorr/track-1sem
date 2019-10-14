@@ -16,8 +16,11 @@
 #define CANARY2		0x0EDAF00D
 #define CANARYDATA	(POISON*POISON)
 
-
+#define $value		"%10.3lf"
 typedef double data_t;
+//#define $value			"%5d"
+//typedef int data_t;
+
 
 typedef struct Stack
 {
@@ -32,6 +35,8 @@ typedef struct Stack
 	size_t	error;
 
 	int32_t canary2;
+
+	data_t hash;
 } stack;
 
 
@@ -45,7 +50,8 @@ enum stack_errors
 	ST_BAD_CANARYDATA	= (1 << 5),
 	ST_OVERFLOW			= (1 << 6),
 	ST_UNDERFLOW		= (1 << 7),
-	ST_ALLOC_FAIL		= (1 << 8)
+	ST_ALLOC_FAIL		= (1 << 8),
+	ST_BAD_HASH			= (1 << 9)
 };
 
 
@@ -61,6 +67,9 @@ int StackIncrease(stack* stk);
 int StackDecrease(stack* stk);
 
 int StackClear(stack* stk);
+
+data_t calc_hash(stack* stk);
+
 
 
 #define ASSERT_OK			\
