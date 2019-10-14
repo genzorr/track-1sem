@@ -110,10 +110,40 @@ int StackIncrease(stack* stk)
 	}
 
 	stk->data = copy;
-	stk->data[stk->capacity+1] = 0;
+	stk->data[stk->capacity+1] = POISON;
 
 	stk->capacity = size;
 	stk->data[stk->capacity+1] = CANARYDATA;
+
+	ASSERT_OK;
+	return OK;
+}
+
+
+int StackDecrease(stack* stk)
+{
+	ASSERT_OK;
+
+	if ((stk->size < stk->capacity / 4) && (stk->capacity > INIT_CAPACITY))
+	{
+		size_t size = stk->capacity / 4;
+		size = (size < INIT_CAPACITY) ? INIT_CAPACITY : size;
+
+		stk->data[stk->capacity+1] = POISON;
+
+		data_t* copy = realloc(stk->data, (size+2)*sizeof(data_t));
+
+		if (copy == NULL)
+		{
+			messagen(red, "# Can't realloc new memory for data");
+			return ALLOC_FAIL;
+		}
+
+		stk->data = copy;
+		stk->capacity = size;
+		stk->data[stk->capacity+1] = CANARYDATA;
+
+	}
 
 	ASSERT_OK;
 	return OK;
@@ -152,6 +182,18 @@ data_t StackPop(stack* stk)
 		messagen(yellow, "# Can't pop element: stack is empty");
 		stk->error = ST_UNDERFLOW;
 		return ST_UNDERFLOW;
+	}
+
+	if (stk->size < (stk->capacity / 4))
+	{
+		if (StackDecrease(stk) == ALLOC_FAIL)
+		{
+			messagen(yellow, "# Can't push element: allocation fail");
+			stk->error |= ST_ALLOC_FAIL;
+			return POISON;
+		}
+		else
+			messagen(yellow, "# Stack's data memory was reallocated");
 	}
 
 	data_t value = stk->data[(--(stk->size)) + 1];

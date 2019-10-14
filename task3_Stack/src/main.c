@@ -32,10 +32,18 @@ int main()
 	StackPush(&stk, 51);
 	StackPush(&stk, 534);
 	StackPush(&stk, -2*POISON);
-	printf("popped: %lf\n", StackPop(&stk));
+
 	StackDump(&stk);
 
-	StackClear(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+	StackPop(&stk);
+
 	StackDump(&stk);
 
 	StackDtor(&stk);

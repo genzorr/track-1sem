@@ -44,7 +44,8 @@ enum stack_errors
 	ST_BAD_CANARY2		= (1 << 4),
 	ST_BAD_CANARYDATA	= (1 << 5),
 	ST_OVERFLOW			= (1 << 6),
-	ST_UNDERFLOW		= (1 << 7)
+	ST_UNDERFLOW		= (1 << 7),
+	ST_ALLOC_FAIL		= (1 << 8)
 };
 
 
@@ -55,6 +56,9 @@ void StackDump(stack* s);
 
 int StackPush(stack* stk, data_t value);
 data_t StackPop(stack* stk);
+
+int StackIncrease(stack* stk);
+int StackDecrease(stack* stk);
 
 int StackClear(stack* stk);
 
